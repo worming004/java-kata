@@ -13,15 +13,15 @@ The key invariant is:
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 21 |
-| Build | Maven 3 |
-| Framework | Spring Boot 3 |
-| Persistence | Spring Data JPA + Hibernate |
-| Database | Microsoft SQL Server 2022 |
-| Migrations | Flyway |
-| Tests | JUnit 5 + Testcontainers (SQL Server) |
+| Layer       | Technology                            |
+| ----------- | ------------------------------------- |
+| Language    | Java 21                               |
+| Build       | Maven 3                               |
+| Framework   | Spring Boot 3                         |
+| Persistence | Spring Data JPA + Hibernate           |
+| Database    | Microsoft SQL Server 2022             |
+| Migrations  | Flyway                                |
+| Tests       | JUnit 5 + Testcontainers (SQL Server) |
 
 ---
 
@@ -34,6 +34,7 @@ Loan           — user, book, borrowedAt, returnedAt (null when active)
 ```
 
 **Core rules:**
+
 1. `availableCopies = book.totalCopies − activeLoans`
 2. A borrow attempt fails when `availableCopies == 0`
 3. Returning a loan sets `returnedAt` and frees the copy
@@ -68,7 +69,7 @@ src/
 ```bash
 docker run \
   -e ACCEPT_EULA=Y \
-  -e MSSQL_SA_PASSWORD=Dev!Passw0rd \
+  -e MSSQL_SA_PASSWORD=Dev\!Passw0rd \
   -p 1433:1433 \
   --name sqlserver-dev \
   -d mcr.microsoft.com/mssql/server:2022-latest
@@ -85,7 +86,7 @@ docker exec -it sqlserver-dev /opt/mssql-tools18/bin/sqlcmd \
 ### 3 — Build and run
 
 ```bash
-JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64 mvn spring-boot:run
+mvn spring-boot:run
 ```
 
 The app starts on **http://localhost:8080**.
@@ -94,12 +95,12 @@ The app starts on **http://localhost:8080**.
 
 ## API endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/books` | List all books |
-| `GET` | `/books/{id}/availability` | Available copies for a book |
-| `POST` | `/loans/borrow` | Borrow a book |
-| `POST` | `/loans/{id}/return` | Return a loan |
+| Method | Path                       | Description                 |
+| ------ | -------------------------- | --------------------------- |
+| `GET`  | `/books`                   | List all books              |
+| `GET`  | `/books/{id}/availability` | Available copies for a book |
+| `POST` | `/loans/borrow`            | Borrow a book               |
+| `POST` | `/loans/{id}/return`       | Return a loan               |
 
 ### Example — borrow a book
 
@@ -116,24 +117,12 @@ curl -X POST http://localhost:8080/loans/borrow \
 Tests are self-contained — Testcontainers pulls a SQL Server Docker image and starts it automatically. **Docker must be running.**
 
 ```bash
-JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64 mvn test
+mvn test
 ```
 
 ---
 
-## Kata exercises
+## Kata exercise
 
-Start from the existing structure and extend it:
+Start from the existing structure and extend it. Make a queue system, where instead of refusing to borrow a book, user is now registered in a fifo queue in order to borrow a copy of a book if 1 is freed.
 
-1. **Level 1** — Verify the borrow rules with unit tests on `LoanService` using mocks.
-2. **Level 2** — Add a rule: a user cannot have more than 3 active loans at a time.
-3. **Level 3** — Prevent a user from borrowing the same book twice simultaneously.
-4. **Level 4** — Handle concurrent borrow attempts safely (optimistic locking, pessimistic lock, or retry).
-5. **Level 5** — Add an overdue concept: loans not returned within 14 days are overdue.
-
----
-
-## Contributing
-
-Clone the repo, pick a level, write tests first, then implement.
-Keep business rules inside `LoanService`, not in controllers or repositories.
