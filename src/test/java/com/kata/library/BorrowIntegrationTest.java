@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Integration tests for the borrow flow.
  *
- * These tests run against a real SQL Server instance provisioned by Testcontainers.
+ * These tests run against a real SQL Server instance configured for the application.
  */
 @Transactional
 class BorrowIntegrationTest extends AbstractIntegrationTest {
@@ -57,7 +57,6 @@ class BorrowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void borrowBook_fails_whenNoCopyAvailable() {
-        // Both copies of bookWithTwoCopies are borrowed
         loanService.borrowBook(alice.getId(), bookWithTwoCopies.getId());
         loanService.borrowBook(bob.getId(),   bookWithTwoCopies.getId());
 
