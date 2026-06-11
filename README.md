@@ -1,70 +1,70 @@
-# Library Kata — Java 21 · Spring Boot · SQL Server
+# Kata Bibliothèque — Java 21 · Spring Boot · SQL Server
 
-A starter kata for practicing Java backend development around a **library borrowing** domain.
+Un kata de démarrage pour pratiquer le développement backend en Java autour d’un domaine de **prêt de bibliothèque**.
 
-## Kata goal
+## Objectif du kata
 
-Implement the rules for borrowing and returning books in a small library system.
-The key invariant is:
+Implémenter les règles d’emprunt et de retour des livres dans un petit système de bibliothèque.
+L’invariant principal est le suivant :
 
-> A user can borrow a book **only if at least one copy is currently available**.
-
----
-
-## Tech stack
-
-| Layer       | Technology                            |
-| ----------- | ------------------------------------- |
-| Language    | Java 21                               |
-| Build       | Maven 3                               |
-| Framework   | Spring Boot 3                         |
-| Persistence | Spring Data JPA + Hibernate           |
-| Database    | Microsoft SQL Server 2022             |
-| Migrations  | Flyway                                |
-| Tests       | JUnit 5 + Testcontainers (SQL Server) |
+> Un utilisateur peut emprunter un livre **uniquement si au moins un exemplaire est actuellement disponible**.
 
 ---
 
-## Domain model
+## Stack technique
 
-```
-Book           — title, author, ISBN, totalCopies
-User           — name, email
-Loan           — user, book, borrowedAt, returnedAt (null when active)
+| Couche          | Technologie                           |
+| --------------- | ------------------------------------- |
+| Langage         | Java 21                               |
+| Build           | Maven 3                               |
+| Framework       | Spring Boot 3                         |
+| Persistance     | Spring Data JPA + Hibernate           |
+| Base de données | Microsoft SQL Server 2022             |
+| Migrations      | Flyway                                |
+| Tests           | JUnit 5 + Testcontainers (SQL Server) |
+
+---
+
+## Modèle de domaine
+
+```text
+Livre          — titre, auteur, ISBN, totalCopies
+Utilisateur    — nom, email
+Emprunt        — utilisateur, livre, borrowedAt, returnedAt (null lorsqu’il est actif)
 ```
 
-**Core rules:**
+**Règles principales :**
 
 1. `availableCopies = book.totalCopies − activeLoans`
-2. A borrow attempt fails when `availableCopies == 0`
-3. Returning a loan sets `returnedAt` and frees the copy
+2. Une tentative d’emprunt échoue lorsque `availableCopies == 0`
+3. Le retour d’un emprunt renseigne `returnedAt` et libère l’exemplaire
 
 ---
 
-## Project structure
+## Structure du projet
 
-```
+```text
 src/
   main/
     java/com/kata/library/
-      domain/          — Book, User, Loan entities
-      repository/      — Spring Data JPA repositories
-      service/         — LoanService (borrow / return / availability)
-      web/             — REST controllers
+      domain/          — entités Book, User, Loan
+      repository/      — repositories Spring Data JPA
+      service/         — LoanService (emprunt / retour / disponibilité)
+      web/             — contrôleurs REST
     resources/
-      db/migration/    — Flyway SQL scripts
+      db/migration/    — scripts SQL Flyway
       application.properties
   test/
     java/com/kata/library/
-      AbstractIntegrationTest.java   — Testcontainers base class
-      BorrowIntegrationTest.java     — integration tests
+      AbstractIntegrationTest.java   — classe de base Testcontainers
+      BorrowIntegrationTest.java     — tests d’intégration
 ```
 
 ---
 
-## Running the application locally
+## Exécuter l’application en local
 
-### 1 — Start SQL Server with Docker
+### 1 — Démarrer SQL Server avec Docker
 
 ```bash
 docker run \
@@ -75,7 +75,7 @@ docker run \
   -d mcr.microsoft.com/mssql/server:2022-latest
 ```
 
-### 2 — Create the database
+### 2 — Créer la base de données
 
 ```bash
 docker exec -it sqlserver-dev /opt/mssql-tools18/bin/sqlcmd \
@@ -83,26 +83,26 @@ docker exec -it sqlserver-dev /opt/mssql-tools18/bin/sqlcmd \
   -Q "CREATE DATABASE library"
 ```
 
-### 3 — Build and run
+### 3 — Compiler et lancer
 
 ```bash
 mvn spring-boot:run
 ```
 
-The app starts on **http://localhost:8080**.
+L’application démarre sur **http://localhost:8080**.
 
 ---
 
-## API endpoints
+## Endpoints API
 
-| Method | Path                       | Description                 |
-| ------ | -------------------------- | --------------------------- |
-| `GET`  | `/books`                   | List all books              |
-| `GET`  | `/books/{id}/availability` | Available copies for a book |
-| `POST` | `/loans/borrow`            | Borrow a book               |
-| `POST` | `/loans/{id}/return`       | Return a loan               |
+| Méthode | Chemin                     | Description                      |
+| ------- | -------------------------- | -------------------------------- |
+| `GET`   | `/books`                   | Lister tous les livres           |
+| `GET`   | `/books/{id}/availability` | Nombre d’exemplaires disponibles |
+| `POST`  | `/loans/borrow`            | Emprunter un livre               |
+| `POST`  | `/loans/{id}/return`       | Retourner un emprunt             |
 
-### Example — borrow a book
+### Exemple — emprunter un livre
 
 ```bash
 curl -X POST http://localhost:8080/loans/borrow \
@@ -112,9 +112,9 @@ curl -X POST http://localhost:8080/loans/borrow \
 
 ---
 
-## Running tests
+## Exécuter les tests
 
-Tests are self-contained — Testcontainers pulls a SQL Server Docker image and starts it automatically. **Docker must be running.**
+Les tests sont autonomes — Testcontainers télécharge une image Docker SQL Server et la démarre automatiquement. **Docker doit être en cours d’exécution.**
 
 ```bash
 mvn test
@@ -122,7 +122,7 @@ mvn test
 
 ---
 
-## Kata exercise
+## Exercice du kata
 
-Start from the existing structure and extend it. Make a queue system, where instead of refusing to borrow a book, user is now registered in a fifo queue in order to borrow a copy of a book if 1 is freed.
+Partez de la structure existante et faites-la évoluer. Créez un système de file d’attente : au lieu de refuser l’emprunt d’un livre, l’utilisateur est désormais enregistré dans une file FIFO afin de pouvoir emprunter un exemplaire d’un livre dès qu’un exemplaire redevient disponible.
 
